@@ -327,7 +327,10 @@ impl Reactor {
         let mut events = mio::Events::with_capacity(1024);
 
         loop {
-            self.poll.poll(&mut events, None)?;
+            match self.poll.poll(&mut events, None) {
+                Err(err) if err.kind() == io::ErrorKind::Interrupted => continue,
+                result => result?,
+            }
             self.recv()?;
 
             // Handle any requested writes.
